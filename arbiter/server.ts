@@ -297,7 +297,7 @@ function connectToHub() {
     const payload: RegisterPayload = {
       name: SESSION_NAME,
       role: SESSION_ROLE,
-      project: process.cwd(),
+      project: process.env.PWD ?? process.cwd(),
       pid: process.pid,
     }
     socket.write(serialize(makeEnvelope('register', SESSION_NAME, 'hub', payload as unknown as Record<string, unknown>)))
