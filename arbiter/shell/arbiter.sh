@@ -29,14 +29,14 @@ arbiter() {
   [ -n "$prompt_file" ] && prompt_content="$(cat "$prompt_file")"
 
   if [ -n "$prompt_content" ]; then
-    ARBITER_SESSION_ROLE=manager claude \
+    ARBITER_SESSION_NAME="manager" ARBITER_SESSION_ROLE=manager claude \
       --dangerously-load-development-channels "$ARBITER_CHANNEL" \
       --append-system-prompt "$prompt_content" \
       -n "arbiter" \
       $ARBITER_YOLO_FLAGS \
       $ARBITER_REMAINING_ARGS
   else
-    ARBITER_SESSION_ROLE=manager claude \
+    ARBITER_SESSION_NAME="manager" ARBITER_SESSION_ROLE=manager claude \
       --dangerously-load-development-channels "$ARBITER_CHANNEL" \
       -n "arbiter" \
       $ARBITER_YOLO_FLAGS \
