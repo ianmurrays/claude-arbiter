@@ -51,10 +51,11 @@ Or have the manager spawn workers for you — just tell it:
 
 ### Shell aliases (recommended)
 
-Add one line to your `~/.zshrc` or `~/.bashrc`:
+Add to your `~/.zshrc` or `~/.bashrc`:
 
 ```bash
-source "$(find ~/.claude/plugins/cache/claude-arbiter/arbiter -name arbiter.sh -path '*/shell/*' 2>/dev/null | head -1)"
+arbiter_sh="$(find ~/.claude/plugins/cache/claude-arbiter/arbiter -name arbiter.sh -path '*/shell/*' 2>/dev/null | head -1)"
+[ -n "$arbiter_sh" ] && source "$arbiter_sh"
 ```
 
 This gives you two commands:

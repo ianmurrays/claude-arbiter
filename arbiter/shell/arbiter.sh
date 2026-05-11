@@ -1,9 +1,12 @@
 #!/bin/sh
-# Source this file from your .zshrc or .bashrc:
-#   source "$(find ~/.claude/plugins/cache/claude-arbiter/arbiter -name arbiter.sh -path '*/shell/*' 2>/dev/null | head -1)"
+# Arbiter — multi-session orchestration for Claude Code
 #
-# Or if you have the repo checked out locally:
-#   source ~/Development/claude-arbiter/arbiter/shell/arbiter.sh
+# Add to your .zshrc or .bashrc:
+#   [ -f ~/.arbiter.sh ] && source ~/.arbiter.sh
+#
+# Or source directly from the plugin cache:
+#   arbiter_sh="$(find ~/.claude/plugins/cache/claude-arbiter/arbiter -name arbiter.sh -path '*/shell/*' 2>/dev/null | head -1)"
+#   [ -n "$arbiter_sh" ] && source "$arbiter_sh"
 
 ARBITER_CHANNEL="plugin:arbiter@claude-arbiter"
 
