@@ -1,13 +1,15 @@
 #!/usr/bin/env bun
 import { createServer, type Socket } from 'net'
-import { writeFileSync, unlinkSync, readFileSync } from 'fs'
+import { writeFileSync, unlinkSync, readFileSync, openSync, closeSync } from 'fs'
 import {
   ensureStateDir,
   writeRegistry,
   HUB_SOCKET_PATH,
   HUB_PID_FILE,
+  STATE_DIR,
   isProcessAlive,
 } from './registry'
+import { join } from 'path'
 import {
   type MessageEnvelope,
   type SessionInfo,
@@ -19,17 +21,34 @@ import {
 
 ensureStateDir()
 
+const LOCK_FILE = join(STATE_DIR, 'hub.lock')
+let lockFd: number
 try {
-  const stalePid = parseInt(readFileSync(HUB_PID_FILE, 'utf8'), 10)
-  if (stalePid > 1 && stalePid !== process.pid && isProcessAlive(stalePid)) {
-    process.stderr.write(`arbiter hub: another hub is running (pid=${stalePid}), exiting\n`)
-    process.exit(0)
+  lockFd = openSync(LOCK_FILE, 'wx')
+} catch (err) {
+  if ((err as NodeJS.ErrnoException).code === 'EEXIST') {
+    try {
+      const stalePid = parseInt(readFileSync(HUB_PID_FILE, 'utf8'), 10)
+      if (stalePid > 1 && isProcessAlive(stalePid)) {
+        process.stderr.write(`arbiter hub: another hub is running (pid=${stalePid}), exiting\n`)
+        process.exit(0)
+      }
+      unlinkSync(LOCK_FILE)
+      lockFd = openSync(LOCK_FILE, 'wx')
+    } catch {
+      process.stderr.write('arbiter hub: failed to acquire lock, exiting\n')
+      process.exit(1)
+    }
+  } else {
+    process.stderr.write(`arbiter hub: lock error: ${err}, exiting\n`)
+    process.exit(1)
   }
-} catch {}
+}
 
 try { unlinkSync(HUB_SOCKET_PATH) } catch {}
 
 writeFileSync(HUB_PID_FILE, String(process.pid))
+closeSync(lockFd)
 
 const HUB_STARTED_AT = Date.now()
 
@@ -248,6 +267,7 @@ function shutdown() {
   server.close()
   try { unlinkSync(HUB_SOCKET_PATH) } catch {}
   try { unlinkSync(HUB_PID_FILE) } catch {}
+  try { unlinkSync(LOCK_FILE) } catch {}
   process.exit(0)
 }
 
