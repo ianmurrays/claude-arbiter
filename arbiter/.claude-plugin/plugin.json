@@ -1,7 +1,7 @@
 {
   "name": "arbiter",
   "description": "Orchestrate multiple Claude Code sessions from a single manager session. Start workers, dispatch tasks, relay questions and permissions across sessions.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "keywords": ["session", "manager", "orchestration", "multi-session", "channel"],
   "author": {
     "name": "Ian Murray"
