@@ -1,0 +1,14 @@
+{
+  "name": "claude-arbiter",
+  "plugins": [
+    {
+      "name": "arbiter",
+      "source": "./arbiter",
+      "description": "Orchestrate multiple Claude Code sessions from a single manager session via a Unix domain socket hub."
+    }
+  ],
+  "owner": {
+    "name": "Ian Murray",
+    "url": "https://github.com/ianmurrays"
+  }
+}
