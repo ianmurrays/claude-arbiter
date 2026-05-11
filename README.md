@@ -51,43 +51,13 @@ Or have the manager spawn workers for you — just tell it:
 
 ### Shell aliases (recommended)
 
-Add to your `~/.zshrc` or `~/.bashrc`:
+Add one line to your `~/.zshrc` or `~/.bashrc`:
 
 ```bash
-# Arbiter — multi-session orchestration for Claude Code
-ARBITER_CHANNEL="plugin:arbiter@claude-arbiter"
-ARBITER_PLUGIN_DIR="$HOME/.claude/plugins/cache/claude-arbiter/arbiter"
-
-# Start the manager session
-arbiter() {
-  local prompt_file
-  prompt_file=$(find "$ARBITER_PLUGIN_DIR" -name "manager.txt" -path "*/prompts/*" 2>/dev/null | head -1)
-
-  ARBITER_SESSION_ROLE=manager claude \
-    --dangerously-load-development-channels "$ARBITER_CHANNEL" \
-    ${prompt_file:+--append-system-prompt-file "$prompt_file"} \
-    -n "arbiter" \
-    "$@"
-}
-
-# Start a worker session
-# Usage: arbiter-worker <name> [project-dir]
-arbiter-worker() {
-  local name="${1:?Usage: arbiter-worker <name> [project-dir]}"
-  local project_dir="${2:-.}"
-  local prompt_file
-  prompt_file=$(find "$ARBITER_PLUGIN_DIR" -name "worker.txt" -path "*/prompts/*" 2>/dev/null | head -1)
-
-  cd "$project_dir" && \
-  ARBITER_SESSION_NAME="$name" ARBITER_SESSION_ROLE=worker claude \
-    --dangerously-load-development-channels "$ARBITER_CHANNEL" \
-    ${prompt_file:+--append-system-prompt-file "$prompt_file"} \
-    -n "worker:$name" \
-    "$@"
-}
+source "$(find ~/.claude/plugins/cache/claude-arbiter/arbiter -name arbiter.sh -path '*/shell/*' 2>/dev/null | head -1)"
 ```
 
-Then:
+This gives you two commands:
 
 ```bash
 # Terminal 1 — start the manager
