@@ -79,7 +79,10 @@ Tools:
 - respond_to_worker: Answer a worker's question.
 - respond_permission: Allow or deny a worker's tool permission request.
 - broadcast: Send a message to all workers.
-- set_status: Update your own status or current task description.`
+- set_status: Update your own status or current task description.
+
+When workers are spawned via cmux, list_sessions shows their surface ID as [cmux: <id>].
+To send input to a worker terminal: cmux send --surface <id> "<text>" && cmux send-key --surface <id> Enter`
 
 const workerInstructions = `You are a worker session connected to a session manager.
 
@@ -299,6 +302,8 @@ function connectToHub() {
       role: SESSION_ROLE,
       project: process.env.PWD ?? process.cwd(),
       pid: process.pid,
+      cmuxSurfaceId: process.env.CMUX_SURFACE_ID,
+      cmuxWorkspaceId: process.env.CMUX_WORKSPACE_ID,
     }
     socket.write(serialize(makeEnvelope('register', SESSION_NAME, 'hub', payload as unknown as Record<string, unknown>)))
 
@@ -524,7 +529,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
           return { content: [{ type: 'text', text: 'No sessions connected.' }] }
         }
         const lines = sessions.map(s =>
-          `${s.name} (${s.role}) — ${s.status} — ${s.project}${s.currentTask ? ` [${s.currentTask}]` : ''}`
+          `${s.name} (${s.role}) — ${s.status} — ${s.project}${s.currentTask ? ` [${s.currentTask}]` : ''}${s.cmuxSurfaceId ? ` [cmux: ${s.cmuxSurfaceId}]` : ''}`
         )
         return { content: [{ type: 'text', text: lines.join('\n') }] }
       }

@@ -145,6 +145,8 @@ function handleMessage(msg: MessageEnvelope, socket: Socket) {
         status: 'active',
         registeredAt: Date.now(),
         lastSeen: Date.now(),
+        cmuxSurfaceId: payload.cmuxSurfaceId,
+        cmuxWorkspaceId: payload.cmuxWorkspaceId,
       }
 
       sessions.set(name, { socket, info, buffer: '' })

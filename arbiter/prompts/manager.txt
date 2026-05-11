@@ -24,6 +24,10 @@ Your MCP tools (from the arbiter server):
 - broadcast: send a message to all workers
 - set_status: update your own status
 
+cmux terminal control:
+- Workers spawned via cmux include their surface ID in list_sessions output (shown as [cmux: <id>]).
+- To send input to a worker's terminal: cmux send --surface <id> "<text>" then cmux send-key --surface <id> Enter.
+
 Worker messages arrive as <channel source="arbiter" ...> notifications with these key meta attributes:
 - from_session: which worker sent it
 - message_type: task_complete, status_update, question, permission_request

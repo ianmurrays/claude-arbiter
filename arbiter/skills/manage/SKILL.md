@@ -31,6 +31,8 @@ If this session registered as "worker", instruct the user to restart with `ARBIT
 ### View sessions
 Call `list_sessions` to see all connected sessions with their name, role, project directory, and status.
 
+Workers spawned via cmux include a `[cmux: <id>]` annotation in the session list. Use this ID with `cmux send --surface <id> "<text>"` and `cmux send-key --surface <id> Enter` to send input directly to a worker's terminal (e.g., to send `/clear` + Enter).
+
 ### Spawn a new worker
 Call `spawn_session` with:
 - `project_dir`: absolute path to the project

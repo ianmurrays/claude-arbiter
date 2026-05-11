@@ -34,6 +34,8 @@ export type RegisterPayload = {
   role: SessionRole
   project: string
   pid: number
+  cmuxSurfaceId?: string
+  cmuxWorkspaceId?: string
 }
 
 export type TaskPayload = {
@@ -89,6 +91,8 @@ export type SessionInfo = {
   registeredAt: number
   lastSeen: number
   currentTask?: string
+  cmuxSurfaceId?: string
+  cmuxWorkspaceId?: string
 }
 
 export function makeEnvelope(
