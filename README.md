@@ -15,41 +15,11 @@ Arbiter lets one **manager** Claude Code session dispatch tasks to and receive r
 
 ## Install
 
-### 1. Add the marketplace
-
-Add to your `~/.claude/settings.json` under `extraKnownMarketplaces`:
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "claude-arbiter": {
-      "source": {
-        "source": "github",
-        "repo": "ianmurrays/claude-arbiter"
-      }
-    }
-  }
-}
-```
-
-### 2. Install the plugin
-
 In any Claude Code session:
 
 ```
+/plugin marketplace add ianmurrays/claude-arbiter
 /plugin install arbiter@claude-arbiter
-```
-
-### 3. Enable the plugin
-
-In `~/.claude/settings.json` under `enabledPlugins`:
-
-```json
-{
-  "enabledPlugins": {
-    "arbiter@claude-arbiter": true
-  }
-}
 ```
 
 ## Usage
