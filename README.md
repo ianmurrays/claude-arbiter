@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" alt="Claude Arbiter" width="400">
+</p>
+
 # Arbiter
 
 Orchestrate multiple Claude Code sessions from a single terminal.
