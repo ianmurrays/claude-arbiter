@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.1] - 2026-05-12
+
+### Fixed
+
+- `spawn_session` cmux branch used nonexistent `cmux surface create` command. Replaced with `cmux new-workspace --name <name> --cwd <path> --command <cmd>`.
+- MCP server version field was stuck at 0.1.0; synced to 0.6.1.
+
+## [0.6.0] - 2026-05-12
+
+### Added
+
+- Sessions now register their `CMUX_SURFACE_ID` and `CMUX_WORKSPACE_ID` with the hub.
+- `list_sessions` output shows `[cmux: <id>]` annotation for cmux-spawned workers.
+- Manager and skill instructions explain how to use `cmux send` / `cmux send-key` with the surface ID.
+
 ## [0.5.0] - 2026-05-11
 
 ### Fixed
