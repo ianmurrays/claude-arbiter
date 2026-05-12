@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.2] - 2026-05-12
+
+### Fixed
+
+- `spawn_session` and hub spawn calls used `stdio: 'ignore'`, silently swallowing errors. Both now capture stderr and log non-zero exit codes.
+- `spawn_session` polling loop now breaks early when the child process exits with a non-zero code, and returns the stderr/exit code to the caller instead of a generic "not registered yet" message.
+
 ## [0.6.1] - 2026-05-12
 
 ### Fixed

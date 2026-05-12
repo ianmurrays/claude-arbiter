@@ -96,7 +96,7 @@ Tools:
 - set_status: Update your own status or current task description.`
 
 const mcp = new Server(
-  { name: 'arbiter', version: '0.6.1' },
+  { name: 'arbiter', version: '0.6.2' },
   {
     capabilities: {
       tools: {},
@@ -261,9 +261,15 @@ function ensureHub(): boolean {
   log('starting hub...')
   const hubPath = join(import.meta.dir, 'src', 'hub.ts')
   const child = spawn('bun', ['run', hubPath], {
-    stdio: 'ignore',
+    stdio: ['ignore', 'ignore', 'pipe'],
     detached: true,
     cwd: import.meta.dir,
+  })
+  child.stderr!.on('data', (chunk: Buffer) => {
+    log(`hub stderr: ${chunk.toString().trim()}`)
+  })
+  child.on('exit', (code) => {
+    if (code !== 0) log(`hub process exited with code ${code}`)
   })
   child.unref()
 
@@ -566,12 +572,25 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
           spawnCmd = `tmux split-window -h -c '${escapedProjectDir}' "${claudeCmd}"`
         }
 
-        const child = spawn('sh', ['-c', spawnCmd], { stdio: 'ignore' })
+        let spawnStderr = ''
+        let spawnExitCode: number | null = null
+
+        const child = spawn('sh', ['-c', spawnCmd], { stdio: ['ignore', 'ignore', 'pipe'] })
+        child.stderr!.on('data', (chunk: Buffer) => {
+          spawnStderr += chunk.toString()
+        })
+        child.on('exit', (code) => {
+          spawnExitCode = code
+          if (code !== 0) {
+            log(`spawn_session "${name}" exited with code ${code}: ${spawnStderr.trim()}`)
+          }
+        })
         child.unref()
 
         let found = false
         for (let i = 0; i < 30; i++) {
           await new Promise(r => setTimeout(r, 1000))
+          if (spawnExitCode !== null && spawnExitCode !== 0) break
           try {
             const sessions = await requestSessionList()
             if (sessions.some(s => s.name === name)) {
@@ -589,6 +608,12 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
             result += ` Initial task dispatched (id: ${taskId}).`
           }
           return { content: [{ type: 'text', text: result }] }
+        }
+
+        if (spawnExitCode !== null && spawnExitCode !== 0) {
+          let msg = `Spawn command failed (exit code ${spawnExitCode}).`
+          if (spawnStderr.trim()) msg += `\nstderr: ${spawnStderr.trim()}`
+          return { content: [{ type: 'text', text: msg }], isError: true }
         }
 
         return { content: [{ type: 'text', text: `Session spawned but "${name}" has not registered yet. It may still be starting up. Check list_sessions in a moment.` }] }
