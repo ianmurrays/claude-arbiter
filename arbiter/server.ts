@@ -96,7 +96,7 @@ Tools:
 - set_status: Update your own status or current task description.`
 
 const mcp = new Server(
-  { name: 'arbiter', version: '0.1.0' },
+  { name: 'arbiter', version: '0.6.1' },
   {
     capabilities: {
       tools: {},
@@ -561,7 +561,7 @@ mcp.setRequestHandler(CallToolRequestSchema, async req => {
 
         let spawnCmd: string
         if (useCmux) {
-          spawnCmd = `cmux surface create --type terminal --exec "cd '${escapedProjectDir}' && ${claudeCmd}"`
+          spawnCmd = `cmux new-workspace --name '${escapedName}' --cwd '${escapedProjectDir}' --command '${claudeCmd}'`
         } else {
           spawnCmd = `tmux split-window -h -c '${escapedProjectDir}' "${claudeCmd}"`
         }
