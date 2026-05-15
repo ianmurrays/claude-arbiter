@@ -53,10 +53,20 @@ Or have the manager spawn workers for you — just tell it:
 
 Add to your `~/.zshrc` or `~/.bashrc`:
 
+**If installed from the marketplace:**
+
 ```bash
 arbiter_sh="$(find ~/.claude/plugins/cache/claude-arbiter/arbiter -name arbiter.sh -path '*/shell/*' 2>/dev/null | head -1)"
 [ -n "$arbiter_sh" ] && source "$arbiter_sh"
 ```
+
+**If working from a local checkout** (changes load immediately, no reinstall needed):
+
+```bash
+source /path/to/claude-arbiter/arbiter/shell/arbiter.sh
+```
+
+The script auto-detects which mode it's running in based on its own path.
 
 This gives you two commands:
 
