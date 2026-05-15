@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.7.1] - 2026-05-15
+
+### Fixed
+- Hub now evicts sessions with dead sockets, not just dead PIDs, preventing "name already registered" errors on reconnection
+- Hub allows same-PID re-registration for reconnection after hub restarts
+- Session name and role env vars now pass through to MCP server subprocess via .mcp.json env config
+- Empty ARBITER_SESSION_NAME falls through to basename(cwd) default (changed ?? to ||)
+
+### Changed
+- Shell script auto-detects dev checkout vs installed plugin, uses --plugin-dir for live-reload in dev mode
+- Shell script derives paths from its own location instead of using find
+- Updated README to document command center features, surface types, and dev setup
+
 ## [0.7.0] - 2026-05-15
 
 ### Changed

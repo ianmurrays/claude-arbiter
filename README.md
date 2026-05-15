@@ -4,18 +4,19 @@
 
 # Arbiter
 
-Orchestrate multiple Claude Code sessions from a single terminal.
+A command center for your entire development environment.
 
-Arbiter lets one **manager** Claude Code session dispatch tasks to and receive responses from multiple **worker** sessions across different projects. Communication flows through a Unix domain socket hub that auto-starts and auto-stops.
+Arbiter turns a single Claude Code session into a pure orchestrator that manages **Claude Code workers**, **terminal processes**, and **browser surfaces** through [cmux](https://cmux.dev). It never reads files or writes code itself -- it delegates everything.
 
 ## Features
 
-- **Start/spawn workers** in tmux or cmux panes from the manager session
-- **Dispatch tasks** to named worker sessions
-- **Relay questions** — workers can ask the manager (human) for clarification
-- **Relay permissions** — worker tool approvals are forwarded to the manager
-- **Auto-discovery** — sessions register automatically on startup
-- **Grandfather existing sessions** — any running session with the plugin can join
+- **Claude Code workers** -- spawn and manage worker sessions that do the actual engineering
+- **Dumb terminals** -- start dev servers, test runners, build processes, database CLIs
+- **Browser surfaces** -- open URLs, take snapshots, interact with web pages
+- **Screen reading** -- monitor any terminal or browser via `cmux read-screen` and `cmux browser snapshot`
+- **Discovery** -- scan all running cmux surfaces on startup, adopt existing terminals
+- **Task dispatch** -- send structured tasks to workers, relay questions and permissions back
+- **Hub protocol** -- structured communication with workers over Unix domain socket, screen reading as fallback
 
 ## Install
 
@@ -27,27 +28,6 @@ In any Claude Code session:
 ```
 
 ## Usage
-
-### Start the manager
-
-```bash
-ARBITER_SESSION_ROLE=manager claude \
-  --dangerously-load-development-channels plugin:arbiter@claude-arbiter \
-  --append-system-prompt-file ~/.claude/plugins/cache/claude-arbiter/arbiter/*/prompts/manager.txt \
-  -n "arbiter"
-```
-
-### Start a worker
-
-```bash
-ARBITER_SESSION_NAME=api-service ARBITER_SESSION_ROLE=worker claude \
-  --dangerously-load-development-channels plugin:arbiter@claude-arbiter \
-  --append-system-prompt-file ~/.claude/plugins/cache/claude-arbiter/arbiter/*/prompts/worker.txt \
-  -n "worker:api-service"
-```
-
-Or have the manager spawn workers for you — just tell it:
-> "Spawn a worker in ~/projects/api-service to fix the auth bug"
 
 ### Shell aliases (recommended)
 
@@ -71,35 +51,80 @@ The script auto-detects which mode it's running in based on its own path.
 This gives you two commands:
 
 ```bash
-# Terminal 1 — start the manager
+# Start the manager (command center)
 arbiter
 
-# Terminal 2 — start a worker
+# Start a worker manually (or let the manager spawn them)
 cd ~/projects/api-service
 arbiter-worker api-service
-
-# Terminal 3 — start another worker
-cd ~/projects/frontend
-arbiter-worker frontend
 ```
+
+### What the manager can do
+
+Once running, tell the manager what you need:
+
+```
+> "Fix the auth bug in the API service"
+  → spawns a Claude worker, dispatches the task, relays progress
+
+> "Start the dev server for the frontend"
+  → opens a dumb terminal running npm run dev
+
+> "Open a browser to localhost:3000 and check the homepage"
+  → opens a cmux browser surface, takes a snapshot
+
+> "What's running right now?"
+  → scans all cmux surfaces, lists connected workers
+
+> "Run the test suite and tell me what fails"
+  → opens a terminal running the tests, reads the screen, reports results
+```
+
+The manager delegates everything -- it never touches files directly. It manages three types of surfaces:
+
+| Surface | Spawned via | Monitored via |
+|---------|-------------|---------------|
+| Claude Code workers | `spawn_session` MCP tool | Hub protocol + `cmux read-screen` |
+| Dumb terminals | `cmux new-workspace` | `cmux read-screen` / `cmux send` |
+| Browser surfaces | `cmux browser open` | `cmux browser snapshot` / `cmux browser screenshot` |
+
+### Manual start (without shell aliases)
+
+```bash
+# Manager
+ARBITER_SESSION_NAME=manager ARBITER_SESSION_ROLE=manager claude \
+  --dangerously-load-development-channels plugin:arbiter@claude-arbiter \
+  --append-system-prompt-file ~/.claude/plugins/cache/claude-arbiter/arbiter/*/prompts/manager.txt \
+  -n "arbiter"
+
+# Worker
+ARBITER_SESSION_NAME=api-service ARBITER_SESSION_ROLE=worker claude \
+  --dangerously-load-development-channels plugin:arbiter@claude-arbiter \
+  --append-system-prompt-file ~/.claude/plugins/cache/claude-arbiter/arbiter/*/prompts/worker.txt \
+  -n "worker:api-service"
+```
+
+Or have the manager spawn workers for you -- just tell it:
+> "Spawn a worker in ~/projects/api-service to fix the auth bug"
 
 ## Architecture
 
 ```
-  Manager Claude Code          Worker A                Worker B
-       │                         │                       │
-  [MCP server] ──────┐    [MCP server]            [MCP server]
-                     │          │                       │
-                     ▼          ▼                       ▼
-              ┌──────────────────────────────────────────┐
-              │           Hub (Unix socket)               │
-              │   ~/.claude/channels/arbiter/hub.sock     │
-              └──────────────────────────────────────────┘
+  Manager (command center)       Worker A              Worker B
+       │                           │                     │
+  [MCP server] ──────┐      [MCP server]          [MCP server]
+       │             │            │                     │
+  cmux CLI           ▼            ▼                     ▼
+  (terminals,  ┌──────────────────────────────────────────┐
+   browsers,   │           Hub (Unix socket)               │
+   screens)    │   ~/.claude/channels/arbiter/hub.sock     │
+               └──────────────────────────────────────────┘
 ```
 
 - **Hub**: Auto-starts when the first session connects, auto-stops after 60s with no connections. Routes messages between sessions. Worker messages (questions, permissions, status updates) are routed only to manager sessions.
 - **MCP server**: Each Claude Code session gets its own instance. Exposes different tools depending on role (manager vs. worker).
-- **State**: `~/.claude/channels/arbiter/` — hub.sock, hub.pid, sessions.json, server.log
+- **cmux**: The manager uses cmux CLI commands (via Bash) to manage terminals and browsers. No MCP tools needed for cmux -- the manager calls commands directly.
+- **State**: `~/.claude/channels/arbiter/` -- hub.sock, hub.pid, sessions.json, server.log
 
 ## Environment variables
 
@@ -111,21 +136,23 @@ arbiter-worker frontend
 
 ## Skills
 
-- `/arbiter:manage` — Manager-side orchestration (list sessions, dispatch tasks, relay questions)
-- `/arbiter:configure` — Configure session identity, check hub status
+- `/arbiter:manage` -- Full command center workflow: discovery, worker management, terminal/browser control, workflow recipes
+- `/arbiter:configure` -- Configure session identity, check hub status
 
-## Manager tools
+## Manager tools (MCP)
 
 | Tool | Description |
 |------|-------------|
-| `list_sessions` | See all connected sessions |
+| `list_sessions` | See all connected Claude worker sessions |
 | `send_task` | Dispatch a task to a worker |
-| `spawn_session` | Start a new worker in tmux/cmux |
+| `spawn_session` | Start a new Claude worker in cmux |
 | `respond_to_worker` | Answer a worker's question |
 | `respond_permission` | Allow/deny a worker's tool permission |
 | `broadcast` | Message all workers |
 
-## Worker tools
+The manager also uses cmux CLI commands directly via Bash for terminal and browser management. See the `/arbiter:manage` skill for the full command reference.
+
+## Worker tools (MCP)
 
 | Tool | Description |
 |------|-------------|
