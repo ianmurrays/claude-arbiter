@@ -46,7 +46,7 @@ function log(msg: string) {
 }
 
 const SESSION_NAME = process.env.ARBITER_SESSION_NAME
-  ?? basename(process.cwd())
+  || basename(process.cwd())
 const SESSION_ROLE = (process.env.ARBITER_SESSION_ROLE ?? 'worker') as 'manager' | 'worker'
 
 const isManager = SESSION_ROLE === 'manager'

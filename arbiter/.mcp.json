@@ -2,7 +2,11 @@
   "mcpServers": {
     "arbiter": {
       "command": "bun",
-      "args": ["run", "--cwd", "${CLAUDE_PLUGIN_ROOT}", "--shell=bun", "--silent", "start"]
+      "args": ["run", "--cwd", "${CLAUDE_PLUGIN_ROOT}", "--shell=bun", "--silent", "start"],
+      "env": {
+        "ARBITER_SESSION_NAME": "${ARBITER_SESSION_NAME:-}",
+        "ARBITER_SESSION_ROLE": "${ARBITER_SESSION_ROLE:-worker}"
+      }
     }
   }
 }

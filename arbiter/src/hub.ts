@@ -125,9 +125,15 @@ function handleMessage(msg: MessageEnvelope, socket: Socket) {
 
       if (sessions.has(name)) {
         const existing = sessions.get(name)!
-        if (!isProcessAlive(existing.info.pid)) {
+        const socketDead = existing.socket.destroyed || !existing.socket.writable
+        if (!isProcessAlive(existing.info.pid) || socketDead) {
+          existing.socket.destroy()
           sessions.delete(name)
-          process.stderr.write(`arbiter hub: evicted dead session "${name}" (pid=${existing.info.pid})\n`)
+          process.stderr.write(`arbiter hub: evicted stale session "${name}" (pid=${existing.info.pid}, socketDead=${socketDead})\n`)
+        } else if (existing.info.pid === payload.pid) {
+          existing.socket.destroy()
+          sessions.delete(name)
+          process.stderr.write(`arbiter hub: re-registration from same pid "${name}" (pid=${existing.info.pid})\n`)
         } else {
           const err = makeEnvelope('error', 'hub', name, {
             message: `name "${name}" is already registered`,
