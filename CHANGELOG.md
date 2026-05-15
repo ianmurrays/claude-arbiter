@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.7.0] - 2026-05-15
+
+### Changed
+
+- Rewritten manager prompt to establish pure orchestrator role (never touches files directly)
+- Expanded manage skill into full command center with dumb terminal, browser surface, and discovery support
+
+### Added
+
+- Dumb terminal management: spawn, send input, read screen, close
+- Browser surface management: open, navigate, snapshot, interact, extract data
+- Discovery and adoption of existing cmux surfaces on startup
+- Workspace management: status indicators, notifications, progress bars
+- Workflow recipes for common multi-surface scenarios (dev env, bug investigation, deploy verification)
+
 ## [0.6.2] - 2026-05-12
 
 ### Fixed

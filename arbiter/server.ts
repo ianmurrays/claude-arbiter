@@ -96,7 +96,7 @@ Tools:
 - set_status: Update your own status or current task description.`
 
 const mcp = new Server(
-  { name: 'arbiter', version: '0.6.2' },
+  { name: 'arbiter', version: '0.7.0' },
   {
     capabilities: {
       tools: {},
